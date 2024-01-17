@@ -14,7 +14,10 @@ namespace Components
         public override void BeforeDispose()
         {
             base.BeforeDispose();
-            EntityManager.Default.Command(new ActorViewDisposedCommand{Actor = Owner.AsActor()});
+            if (!EntityManager.Default.TryGetSingleComponent(out OnApplicationQuitTagComponent onApplicationQuitTagComponent))
+            {
+                EntityManager.Default.Command(new ActorViewDisposedCommand { Actor = Owner.AsActor() });
+            }
         }
     }
 
