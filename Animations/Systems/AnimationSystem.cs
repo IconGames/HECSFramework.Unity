@@ -29,7 +29,7 @@ namespace Systems
         public void CommandReact(FloatAnimationCommand command)
         {
             if (isReady)
-                AnimatorStateComponent.State.SetFloat(command.Index, command.Value, command.ForceSet);
+                AnimatorStateComponent.State.SetFloat(command.Index, command.Value, command.DampTime, command.DeltaTime, command.ForceSet);
         }
 
         public void CommandReact(IntAnimationCommand command)
