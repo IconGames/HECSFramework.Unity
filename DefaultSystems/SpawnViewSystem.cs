@@ -2,6 +2,7 @@ using System;
 using System.Threading.Tasks;
 using Commands;
 using Components;
+using Components.MonoBehaviourComponents;
 using Cysharp.Threading.Tasks;
 using HECSFramework.Core;
 using HECSFramework.Unity;
@@ -10,15 +11,14 @@ using UnityEngine;
 namespace Systems
 {
     [Serializable][Documentation(Doc.Visual, "this system spawn view to actor and report when spawn view complete")]
-    public sealed class SpawnViewSystem : BaseSystem, IAfterEntityInit, IReactCommand<RespawnViewCommand>
+    public sealed class SpawnViewSystem : BaseSystem, IAfterEntityInit, IReactCommand<RespawnViewCommand>, IHaveActor
     {
         [Required]
         public ViewReferenceGameObjectComponent viewReferenceGameObject;
-
         [Required]
         public UnityTransformComponent unityTransform;
-        private GameObject viewGameObject;
         private PoolingSystem poolingSystem;
+        public Actor Actor { get; set; }
 
         public override void InitSystem() { }
 
@@ -30,6 +30,7 @@ namespace Systems
 
         public async void CommandReact(RespawnViewCommand command)
         {
+            var viewGameObject = Owner.GetComponent<ViewReadyTagComponent>().View;
             AfterViewService.ProcessReset(Owner, viewGameObject);
             poolingSystem.ReleaseView(viewGameObject);
             //if we destroy gameObject, we need to wait for the next frame
@@ -41,12 +42,19 @@ namespace Systems
         {
             //after ProcessAfterView component collect all poolable views to release on destroy
             Owner.GetOrAddComponent<PoolableViewsProviderComponent>();
-            
-            viewGameObject = await poolingSystem.GetViewFromPool(viewReferenceGameObject.ViewReference);
-            viewGameObject.transform.position = unityTransform.Transform.position;
-            viewGameObject.transform.rotation = unityTransform.Transform.rotation;
-            viewGameObject.transform.SetParent(unityTransform.Transform);
-            viewGameObject.transform.localPosition = Vector3.zero;
+            GameObject viewGameObject;
+            if (!Actor.TryGetComponent(out ViewGameObjectMonoComponent viewGameObjectMonoComponent, true))
+            {
+                viewGameObject = await poolingSystem.GetViewFromPool(viewReferenceGameObject.ViewReference);
+                viewGameObject.transform.position = unityTransform.Transform.position;
+                viewGameObject.transform.rotation = unityTransform.Transform.rotation;
+                viewGameObject.transform.SetParent(unityTransform.Transform);
+                viewGameObject.transform.localPosition = Vector3.zero;
+            }
+            else
+            {
+                viewGameObject = viewGameObjectMonoComponent.gameObject;
+            }
             
             var injectActor = viewGameObject.GetComponentsInChildren<IHaveActor>();
             
@@ -63,9 +71,11 @@ namespace Systems
         {
             if (!EntityManager.Default.TryGetSingleComponent<OnApplicationQuitTagComponent>(out _))
             {
+                var viewGameObject = Owner.GetComponent<ViewReadyTagComponent>().View;
                 poolingSystem.ReleaseView(viewGameObject);
             }
         }
+
     }
 
     public static class AfterViewService
