@@ -1,5 +1,6 @@
 using System;
 using HECSFramework.Core;
+using HECSFramework.Unity;
 using Systems;
 
 namespace Components
@@ -9,5 +10,6 @@ namespace Components
     public sealed partial class InputOverUIComponent : BaseComponent, IWorldSingleComponent
     {
         public bool InputOverUI;
+        public InputIdentifier TouchPositionInputIdentifier;
     }
 }
