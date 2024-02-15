@@ -21,12 +21,16 @@ namespace Components
 
         public void SetDestination(Vector3 destination)
         {
+            if (NavMeshAgent == null) return;
+            
             NavMeshAgent.isStopped = false;
             NavMeshAgent.SetDestination(destination);
         }
 
         public void Stop()
         {
+            if (NavMeshAgent == null) return;
+            
             NavMeshAgent.isStopped = true;
         }
      
