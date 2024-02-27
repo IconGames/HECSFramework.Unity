@@ -118,7 +118,7 @@ namespace Systems
 
         public async UniTask<Entity> ShowUI(int uiType, bool isMultiple = false, int additionalCanvas = 0, bool needInit = true, bool ispoolable = false, bool isLocked = true)
         {
-            while (!isReady)
+            while (!isReady || !isLoaded)
                 await Task.Delay(50);
 
             uiCurrents.ForceUpdateFilter();
