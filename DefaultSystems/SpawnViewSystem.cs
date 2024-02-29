@@ -32,7 +32,7 @@ namespace Systems
         {
             var viewGameObject = Owner.GetComponent<ViewReadyTagComponent>().View;
             AfterViewService.ProcessReset(Owner, viewGameObject);
-            poolingSystem.ReleaseView(viewGameObject);
+            poolingSystem.ReleaseView(viewGameObject).Forget();
             //if we destroy gameObject, we need to wait for the next frame
             await UniTask.Yield();
             await SpawnView();
@@ -72,7 +72,7 @@ namespace Systems
             if (!EntityManager.Default.TryGetSingleComponent<OnApplicationQuitTagComponent>(out _))
             {
                 var viewGameObject = Owner.GetComponent<ViewReadyTagComponent>().View;
-                poolingSystem.ReleaseView(viewGameObject);
+                poolingSystem.ReleaseView(viewGameObject).Forget();
             }
         }
 

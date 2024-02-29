@@ -100,7 +100,7 @@ namespace Systems
             return view;
         }
 
-        public async Task<EntityContainer> GetEntityContainerFromPool(string key)
+        public async UniTask<EntityContainer> GetEntityContainerFromPool(string key)
         {
             if (pooledContainers.TryGetValue(key, out var container))
             {
@@ -117,7 +117,7 @@ namespace Systems
             }
         }
 
-        public async Task<EntityContainer> GetEntityContainerFromPool(AssetReference assetReference)
+        public async UniTask<EntityContainer> GetEntityContainerFromPool(AssetReference assetReference)
         {
             if (pooledContainers.TryGetValue(assetReference.AssetGUID, out var container))
             {
@@ -134,7 +134,7 @@ namespace Systems
             }
         }
 
-        public async void Warmup(AssetReference viewReference, int count)
+        public async UniTask Warmup(AssetReference viewReference, int count)
         {
             var neededHandler = Addressables.LoadAssetAsync<GameObject>(viewReference);
             var needed = await neededHandler.Task;
@@ -142,14 +142,14 @@ namespace Systems
             for (int i = 0; i < count; i++)
             {
                 var instance = MonoBehaviour.Instantiate(needed.gameObject);
-                ReleaseView(viewReference, instance);
+                await ReleaseView(viewReference, instance);
             }
 
             await UniTask.NextFrame();
             Addressables.Release(neededHandler);
         }
 
-        public async void Warmup(EntityContainer entityContainer, int count)
+        public async UniTask Warmup(EntityContainer entityContainer, int count)
         {
             if (entityContainer.TryGetComponent(out ViewReferenceComponent view))
             {
@@ -165,13 +165,13 @@ namespace Systems
             }
         }
 
-        public async void Release(Actor actor)
+        public async UniTask Release(Actor actor)
         {
             if (actor.TryGetHECSComponent(out PoolableViewsProviderComponent poolableViewsProviderComponent))
             {
                 foreach (var pview in poolableViewsProviderComponent.Views)
                 {
-                    ReleaseView(pview);
+                    ReleaseView(pview).Forget();
                 }
             }
 
@@ -192,7 +192,7 @@ namespace Systems
             MonoBehaviour.Destroy(actor.gameObject);
         }
 
-        public async void ReleaseView(IPoolableView poolableView)
+        public async UniTask ReleaseView(IPoolableView poolableView)
         {
             poolableView.Stop();
 
@@ -208,7 +208,7 @@ namespace Systems
             }
         }
 
-        public async void ReleaseView(GameObject gameObject)
+        public async UniTask ReleaseView(GameObject gameObject)
         {
             if (gameObject.TryGetComponent(out IPoolableView poolableView))
             {
@@ -250,11 +250,6 @@ namespace Systems
             var pool = await GetPool(assetReference);
             pool.Release(gameObject);
 
-        }
-
-        public GameObject GetNewInstance(GameObject actor)
-        {
-            return MonoBehaviour.Instantiate(actor);
         }
 
         public override void Dispose()

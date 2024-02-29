@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Runtime.CompilerServices;
 using Components;
+using Cysharp.Threading.Tasks;
 using HECSFramework.Core;
 using HECSFramework.Unity;
 using Sirenix.OdinInspector;
@@ -188,7 +189,7 @@ namespace HECSFramework.Unity
 
         public void RemoveActorToPool()
         {
-            Entity.World.GetSingleSystem<PoolingSystem>().Release(this);
+            Entity.World.GetSingleSystem<PoolingSystem>().Release(this).Forget();
             Entity?.Dispose();
             Entity = null;
         }

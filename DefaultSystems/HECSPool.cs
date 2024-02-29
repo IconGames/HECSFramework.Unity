@@ -40,12 +40,16 @@ public class HECSPool<TContainer> : IDisposable, IHECSPool
 
     public async UniTask<GameObject> Get()
     {
-        if (queue.Count == 0)
+        while (queue.Count > 0)
         {
-            return await container.CreateInstance(Vector3.zero, Quaternion.identity);
+            var go = queue.Dequeue();
+            if (go != null)
+                return go;
+            
+            container.ReleaseInstance(go);
         }
-
-        return queue.Dequeue();
+        
+        return await container.CreateInstance(Vector3.zero, Quaternion.identity);
     }
 
     public void Release(GameObject pooledObj)
