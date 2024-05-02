@@ -4,17 +4,10 @@ using HECSFramework.Core;
 namespace Components
 {
     [Serializable]
-    public sealed partial class AdditionalAbilityIndexComponent : BaseComponent, IInitable
+    [Documentation(Doc.HECS, Doc.Abilities, "this component holds additional tags for ability, its can be used if we always have MainAbility, but can change ability behind this index")]
+    public sealed partial class AdditionalAbilityIndexComponent : BaseComponent
     {
-        [UnityEngine.SerializeField]
-        private AdditionalAbilityIdentifier[] additionalAbilityIdentifiers = new AdditionalAbilityIdentifier[0];
+        public AdditionalAbilityIdentifier[] additionalAbilityIdentifiers = Array.Empty<AdditionalAbilityIdentifier>();
 
-        public void Init()
-        {
-            foreach (var identifier in additionalAbilityIdentifiers)
-            {
-                AdditionalIndeces.Add(identifier.Id);
-            }
-        }
     }
 }
