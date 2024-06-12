@@ -16,9 +16,9 @@ namespace Systems
     {
         private const int MAX_RETRY_DELAY = 60;
 
-        private readonly Dictionary<AssetReference, UniTask> assetsLoadsMap = new();
-        private readonly Dictionary<AssetReference, object> assetsContainersCache = new();
-        private readonly Dictionary<AssetReference, int> containersRefsCount = new();
+        private readonly Dictionary<string, UniTask> assetsLoadsMap = new();
+        private readonly Dictionary<string, object> assetsContainersCache = new();
+        private readonly Dictionary<string, int> containersRefsCount = new();
 
         private int exceptionsCount;
 
@@ -30,17 +30,17 @@ namespace Systems
             where TRef : AssetReference
             where TObject : Object
         {
-            if (assetsLoadsMap.TryGetValue(reference, out var value))
+            if (assetsLoadsMap.TryGetValue(reference.AssetGUID, out var value))
             {
                 await value;
             }
-            else if (!assetsContainersCache.ContainsKey(reference))
+            else if (!assetsContainersCache.ContainsKey(reference.AssetGUID))
             {
                 await PreloadContainer<TRef, TObject>(reference);
             }
 
-            containersRefsCount[reference]++;
-            return assetsContainersCache[reference] as AssetRefContainer<TRef, TObject>;
+            containersRefsCount[reference.AssetGUID]++;
+            return assetsContainersCache[reference.AssetGUID] as AssetRefContainer<TRef, TObject>;
         }
 
         public void ReleaseContainer<TRef, TObject>(AssetRefContainer<TRef, TObject> refContainer)
@@ -48,21 +48,21 @@ namespace Systems
             where TObject : Object
         {
             TRef reference = refContainer.Reference;
-            if (!assetsContainersCache.ContainsKey(reference))
+            if (!assetsContainersCache.ContainsKey(reference.AssetGUID))
             {
                 Debug.LogError($"Cannot find container with provided ref {reference}");
                 return;
             }
 
-            containersRefsCount[reference]--;
+            containersRefsCount[reference.AssetGUID]--;
 
             int assetsInstancesRefsCount = refContainer.RefsCount;
-            int assetContainerRefsCount = containersRefsCount[reference];
+            int assetContainerRefsCount = containersRefsCount[reference.AssetGUID];
 
             if (assetsInstancesRefsCount == 0 && assetContainerRefsCount == 0)
             {
-                containersRefsCount.Remove(reference);
-                assetsContainersCache.Remove(reference);
+                containersRefsCount.Remove(reference.AssetGUID);
+                assetsContainersCache.Remove(reference.AssetGUID);
                 reference.ReleaseAsset();
             }
         }
@@ -77,7 +77,7 @@ namespace Systems
             if (loadingTCS == null)
             {
                 loadingTCS = new UniTaskCompletionSource();
-                assetsLoadsMap[reference] = loadingTCS.Task.Preserve();
+                assetsLoadsMap[reference.AssetGUID] = loadingTCS.Task.Preserve();
             }
 
             try
@@ -86,10 +86,10 @@ namespace Systems
 
                 exceptionsCount = 0;
                 AssetRefContainer<TRef, TObject> refContainer = new AssetRefContainer<TRef, TObject>(reference);
-                assetsContainersCache[reference] = refContainer;
-                containersRefsCount[reference] = 0;
+                assetsContainersCache[reference.AssetGUID] = refContainer;
+                containersRefsCount[reference.AssetGUID] = 0;
 
-                assetsLoadsMap.Remove(reference);
+                assetsLoadsMap.Remove(reference.AssetGUID);
                 loadingTCS.TrySetResult();
             }
             catch (Exception e)
