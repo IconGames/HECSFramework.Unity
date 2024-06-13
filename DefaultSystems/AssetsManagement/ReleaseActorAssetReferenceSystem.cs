@@ -1,6 +1,8 @@
 using System;
+using System.Threading.Tasks;
 using Commands;
 using Components;
+using Cysharp.Threading.Tasks;
 using HECSFramework.Core;
 using UnityEngine;
 
@@ -21,13 +23,14 @@ namespace Systems
             assetService = EntityManager.Default.GetSingleSystem<AssetsServiceSystem>();
         }
 
-        public async void CommandGlobalReact(ActorViewDisposedCommand command)
+        public void CommandGlobalReact(ActorViewDisposedCommand command)
         {
-            var container =
-                await assetService.GetContainer<ActorViewReference, GameObject>(command.Actor
-                    .GetHECSComponent<ViewReferenceComponent>().ViewReference);
-            container.ReleaseInstance(command.Actor.gameObject);
-            assetService.ReleaseContainer(container);
+            if (assetService.TryGetContainerFast<ActorViewReference, GameObject>(command.Actor
+                    .GetHECSComponent<ViewReferenceComponent>().ViewReference, out var container))
+            {
+                container.ReleaseInstance(command.Actor.gameObject);
+                assetService.ReleaseContainer(container);               
+            }
         }
     }
 }

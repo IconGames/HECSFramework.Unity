@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Threading;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
@@ -19,18 +20,20 @@ namespace AssetsManagement.Containers
         public TObject Asset => asset;
         public TRef Reference => reference;
 
-        public async UniTask<GameObject> CreateInstance(Vector3 pos, Quaternion rot, Transform parent = null)
+        public async UniTask<GameObject> CreateInstance(Vector3 pos, Quaternion rot, Transform parent = null, CancellationToken token = default)
         {
-            var instance = await Addressables.InstantiateAsync(reference, pos, rot, parent);
+            var instanceHandle = Addressables.InstantiateAsync(reference, pos, rot, parent);
+            var instance = await instanceHandle.WithCancellation(token);
             instances.Add(instance);
             return instance;
         }
 
         public async UniTask<TComponent> CreateInstanceForComponent<TComponent>(Vector3 pos = default,
             Quaternion rot = default,
-            Transform parent = null) where TComponent : Component
+            Transform parent = null,
+            CancellationToken token = default) where TComponent : Component
         {
-            var instance = await CreateInstance(pos, rot, parent);
+            var instance = await CreateInstance(pos, rot, parent, token);
             return instance != null ? instance.GetComponent<TComponent>() : null;
         }
 

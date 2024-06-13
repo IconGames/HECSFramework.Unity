@@ -43,6 +43,20 @@ namespace Systems
             return assetsContainersCache[reference.AssetGUID] as AssetRefContainer<TRef, TObject>;
         }
 
+        public bool TryGetContainerFast<TRef, TObject>(TRef reference, out AssetRefContainer<TRef, TObject> container)
+            where TRef : AssetReference
+            where TObject : Object
+        {
+            if (assetsContainersCache.TryGetValue(reference.AssetGUID, out var obj))
+            {
+                container = obj as AssetRefContainer<TRef, TObject>;
+                return true;
+            }
+
+            container = default;
+            return false;
+        }
+
         public void ReleaseContainer<TRef, TObject>(AssetRefContainer<TRef, TObject> refContainer)
             where TRef : AssetReference
             where TObject : Object
