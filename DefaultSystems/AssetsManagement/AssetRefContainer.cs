@@ -20,20 +20,19 @@ namespace AssetsManagement.Containers
         public TObject Asset => asset;
         public TRef Reference => reference;
 
-        public async UniTask<GameObject> CreateInstance(Vector3 pos, Quaternion rot, Transform parent = null, CancellationToken token = default)
+        public async UniTask<GameObject> CreateInstance(Vector3 pos, Quaternion rot, Transform parent = null)
         {
             var instanceHandle = Addressables.InstantiateAsync(reference, pos, rot, parent);
-            var instance = await instanceHandle.WithCancellation(token);
+            var instance = await instanceHandle;
             instances.Add(instance);
             return instance;
         }
 
         public async UniTask<TComponent> CreateInstanceForComponent<TComponent>(Vector3 pos = default,
             Quaternion rot = default,
-            Transform parent = null,
-            CancellationToken token = default) where TComponent : Component
+            Transform parent = null) where TComponent : Component
         {
-            var instance = await CreateInstance(pos, rot, parent, token);
+            var instance = await CreateInstance(pos, rot, parent);
             return instance != null ? instance.GetComponent<TComponent>() : null;
         }
 

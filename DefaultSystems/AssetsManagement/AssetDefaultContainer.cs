@@ -17,13 +17,13 @@ namespace HECSFramework.HECS.Unity.DefaultSystems.AssetsManagement
             this.asset = asset;
         }
         
-        public UniTask<GameObject> CreateInstance(Vector3 pos, Quaternion rot, Transform parent = null, CancellationToken token = default)
+        public UniTask<GameObject> CreateInstance(Vector3 pos, Quaternion rot, Transform parent = null)
         {
             return UniTask.FromResult(Object.Instantiate(asset, pos, rot, parent));
         }
 
         public UniTask<TComponent> CreateInstanceForComponent<TComponent>(Vector3 pos = default, Quaternion rot = default,
-            Transform parent = null, CancellationToken token = default) where TComponent : Component
+            Transform parent = null) where TComponent : Component
         {
             var obj = Object.Instantiate(asset, pos, rot, parent);
             return UniTask.FromResult(obj.GetComponent<TComponent>());

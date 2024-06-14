@@ -24,11 +24,11 @@ namespace HECSFramework.Unity
         }
 
         public static async ValueTask<Actor> GetActor(this ViewReferenceComponent viewReferenceComponent,
-            Vector3 position = default, Quaternion rotation = default, Transform parent = null, CancellationToken token = default)
+            Vector3 position = default, Quaternion rotation = default, Transform parent = null)
         {
             var assetsService = EntityManager.Default.GetSingleSystem<AssetsServiceSystem>();
             var container = await assetsService.GetContainer<ActorViewReference, GameObject>(viewReferenceComponent.ViewReference);
-            var actorPrfb = await container.CreateInstanceForComponent<Actor>(position, rotation, parent, token);
+            var actorPrfb = await container.CreateInstanceForComponent<Actor>(position, rotation, parent);
             assetsService.ReleaseContainer(container);
             return actorPrfb;
         }
@@ -55,7 +55,7 @@ namespace HECSFramework.Unity
             return entity;
         }
 
-        public static async ValueTask<Actor> GetActor(this EntityContainer entityContainer, World world = null, bool needLoadContainer = true, Action<Actor> callBack = null, Vector3 position = default, Quaternion rotation = default, Transform transform = null, CancellationToken token = default)
+        public static async ValueTask<Actor> GetActor(this EntityContainer entityContainer, World world = null, bool needLoadContainer = true, Action<Actor> callBack = null, Vector3 position = default, Quaternion rotation = default, Transform transform = null)
         {
             var viewReferenceComponent = entityContainer.GetComponent<ViewReferenceComponent>();
             var actorID = entityContainer.CachedName;
@@ -63,7 +63,7 @@ namespace HECSFramework.Unity
             if (viewReferenceComponent == null)
                 throw new Exception($"actor {actorID} does not have any view ");
 
-            var actorPrfb = await GetActor(viewReferenceComponent, position, rotation, transform, token);
+            var actorPrfb = await GetActor(viewReferenceComponent, position, rotation, transform);
             if (needLoadContainer)
             {
                 actorPrfb.Init(world, initEntity: false);
