@@ -27,6 +27,13 @@ namespace HECSFramework.Unity
 
             base.Init(entity, pure);
         }
+        
+        public override bool IsHaveComponent<T>()
+        {
+            if (base.IsHaveComponent<T>())
+                return true;
+            return ConditionsAndContainers.Any(cont => cont.Container.IsHaveComponent<T>());
+        }
     }
 
     [Serializable]
